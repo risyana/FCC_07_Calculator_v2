@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<link rel="stylesheet" href="bootstrap.min.css"/>
+	<script src="jquery-3.0.0.min.js"></script>
+	<style type="text/css">
+
+		body {
+			background-color: #a3c3f7;
+		}
+
+		.cal {
+			border:solid blue 1px;
+		}
+
+		.button, .ce, .ac {
+			width: 58px;
+			height: 40px;
+			margin-top: 4px;
+			font-size: 25px;
+		}
+
+		.zero, .equal {
+			width: 120px;
+		}
+
+
+		.display{
+			border-radius: 5px;
+			width: 237px;
+			margin-top: 3px;
+			margin-left : 3px;
+			margin-right:  3px;
+			padding: 3px;
+			border: solid grey 0px;
+			text-align: right;
+
+		}
+
+		.result{
+			border-bottom-left-radius: 0px;
+			border-bottom-right-radius: 0px;
+			height: 50px;
+			font-size: 40px;
+		}
+
+		.operation {
+			border-top-left-radius: 0px;
+			border-top-right-radius: 0px;
+			margin-top:0px;
+			margin-bottom: 3px;
+		}
+
+		.display-border{
+			border-radius: 10px;
+			background-color: #2b4d84;
+			width: 245px;
+		}
+
+		.calculator-border{
+			border-radius: 5px;
+			border:solid #08234f 1px;
+			background-color:#2b4d84;
+			margin: auto;
+			margin-top: 30px;
+			padding: 5px;
+			padding-top: 15px;
+			padding-bottom: 10px;
+			width: 259px;
+			box-shadow: inset 1px 1px 10px 0px rgba(0, 0, 0, 0.5), 5px 5px 10px 0px rgba(0, 0, 0, 0.5);
+		}
+
+		.brand{
+			color:white;
+			font-size: 30px;
+			font-style: bold;
+			font-family: verdana;
+		}
+
+
+	</style>
+	<script>
+		
+	$(document).ready(function(){
+		var arr = [];
+		var state = 0;
+		var prevState = 0;
+		/*
+			Type of state
+			1. STARTED
+			2. NUMBER: Pressed
+			3. DECIMAL: Pressed
+			4. CE: Pressed
+			5. OPERATOR: Pressed
+			6. EQUAL: Pressed
+			7. ZERO: Pressed
+
+		*/
+
+		// initiate state 1
+		state_1();
+
+		$(".num").click(function(){
+			state_2();
+			var num = $(this).val();
+			var initRes = $(".result").val();
+
+			if(prevState===1 || prevState===5 || prevState===4){
+				arr.push(num);
+				$(".result").val(num);
+				$(".operation").val(arrPrint(arr));
+			}else if(prevState===2 || prevState===3){
+				arr[arr.length-1] += num;
+				$(".result").val(initRes+num);
+				$(".operation").val(arrPrint(arr));
+			}else if(prevState===7){
+				arr[arr.length-1] = num;
+				$(".result").val(num);
+				$(".operation").val(arrPrint(arr));
+			}else if(prevState===6){
+				arr = [];
+				arr.push(num);
+				$(".result").val(num);
+				$(".operation").val(arrPrint(arr));
+			}
+
+			if(isDecimal(arr[arr.length-1])){
+				$(".dec").attr("disabled",!false);
+			}else{
+				$(".dec").attr("disabled",!true);
+			}
+
+			if(arr.length>=3){
+				$(".equal").attr("disabled",!true);
+			}else{
+				$(".equal").attr("disabled",!false);
+			}
+
+			console.log("is decimal ?: "+ isDecimal(arr[arr.length-1]));
+			console.log(arr);
+
+		});
+
+		$(".dec").click(function(){
+			state_3();
+			var num = $(this).val();
+			var initRes = $(".result").val();
+
+			if(prevState===1||prevState===5||prevState===4){
+				arr.push("0.");
+				$(".result").val("0.");
+				$(".operation").val(arrPrint(arr));
+			}else if(prevState===2){
+				arr[arr.length-1] += num;
+				$(".result").val(initRes+num);
+				$(".operation").val(arrPrint(arr));	
+			}else if(prevState===7){
+				arr[arr.length-1] += num;
+				$(".result").val(initRes+num);
+				$(".operation").val(arrPrint(arr));	
+			}else if(prevState===6){
+				arr = [];
+				arr.push("0.");
+				$(".result").val("0.");
+				$(".operation").val(arrPrint(arr));
+			}
+
+			console.log(arr);
+
+		});
+
+		$(".ac").click(function(){
+			state_1();
+
+			$(".result").val("0");
+			$(".operation").val("0");	
+			arr = [];
+			console.log(arr);
+
+		});
+
+		$(".ce").click(function(){
+			state_4();
+
+			if(prevState===2 || prevState===3 || prevState===5 ||prevState===7 || prevState===6 || prevState===4){
+				
+				$(".result").val("0");
+				
+				
+				if(isNaN(arr[arr.length-1])){
+					arr.pop();
+					arr.pop();
+				}else{
+					arr.pop();
+				}				
+
+
+				if(arr.length ===0){
+					$(".operation").val("0");
+				}else{
+					$(".operation").val(arrPrint(arr));
+				}
+			}
+
+			state_4();
+
+			console.log(arr);
+			
+		});
+
+		$(".op").click(function(){
+			state_5();
+			var op = $(this).val();
+
+			if(prevState===2 || prevState===6){
+				arr.push(op);
+				$(".result").val(op);
+				$(".operation").val(arrPrint(arr));
+					
+			}
+
+			console.log(arr);
+
+		});
+
+		$(".zero").click(function(){
+			prevState = state;
+			if(prevState===2 || prevState===3){
+				state_2();
+			}else if(prevState===5 || prevState===6 || prevState===4){
+				state_7();
+			}
+
+			var num = $(this).val();
+			var initRes = $(".result").val();
+
+			if(prevState===2 || prevState===3){
+				arr[arr.length-1] += num;
+				$(".result").val(initRes+num);
+				$(".operation").val(arrPrint(arr));			
+			}else if(prevState===5 || prevState===4){
+				arr.push(num);
+				$(".result").val(num);
+				$(".operation").val(arrPrint(arr));	
+			}else if(prevState===6){
+				arr=[];
+				arr.push(num);
+				$(".result").val(num);
+				$(".operation").val(arrPrint(arr));					
+			}
+
+			if(isDecimal(arr[arr.length-1])){
+				$(".dec").attr("disabled",!false);
+			}else{
+				$(".dec").attr("disabled",!true);
+			}
+
+			if(arr.length>=3){
+				$(".equal").attr("disabled",!true);
+			}else{
+				$(".equal").attr("disabled",!false);
+			}
+
+			console.log("is decimal ?: "+isDecimal(arr[arr.length-1]));
+			console.log(arr);
+
+		});
+
+		$(".equal").click(function(){
+			state_6();
+			var initOp = $(".operation").val();
+
+
+			var a = arr[0]; 
+			for (var i = 0; i < arr.length-2; i=i+2) {
+				//console.log(i);
+				switch (arr[i+1]){
+					case "+":
+					a = calculate(a,arr[i+2],add);
+					break;
+
+					case "-":
+					a = calculate(a,arr[i+2],substract);
+					break;
+					
+					case "/":
+					a = calculate(a,arr[i+2],division);
+					break;
+					
+					case "*":
+					a = calculate(a,arr[i+2],multiply);
+					break;
+
+				}
+			}
+			console.log("rslt= "+a);
+
+			$(".result").val(a);
+			$(".operation").val(initOp+"="+a);
+			arr = [];
+			arr.push(a);
+			console.log(arr);
+
+		});
+
+		var arrPrint = function(x){
+			var text = "";
+			for (var i = 0; i < x.length; i++) {
+				text += x[i];
+			}
+			return text;
+		};
+
+		var isDecimal = function(x){
+			if(x.indexOf(".") === -1) {
+				return false; 	
+			}else{
+				return true;
+			}
+		};
+
+		function state_1(){
+			prevState = state;
+			state = 1;
+			console.log("=================");
+			console.log("state_1: STARTED");
+			console.log("prevState : "+prevState);
+			console.log("State : "+state);
+
+			$(".ac").attr("disabled",!true);
+			$(".ce").attr("disabled",!true);
+			$(".op").attr("disabled",!false);
+			$(".num").attr("disabled",!true);
+			$(".zero").attr("disabled",!false);
+			$(".dec").attr("disabled",!true);
+			$(".equal").attr("disabled",!false);
+		}
+
+		function state_2(){
+			prevState = state;
+			state = 2;
+			console.log("=================");
+			console.log("state_2: NUMBER: Pressed");
+			console.log("prevState : "+prevState);
+			console.log("State : "+state);
+			
+			$(".ac").attr("disabled",!true);
+			$(".ce").attr("disabled",!true);
+			$(".op").attr("disabled",!true);
+			$(".num").attr("disabled",!true);
+			$(".zero").attr("disabled",!true);
+			$(".dec").attr("disabled",!true);
+			$(".equal").attr("disabled",!false);
+		}
+
+		function state_3(){
+			prevState = state;
+			state = 3;
+			console.log("=================");
+			console.log("state_3: DECIMAL: Pressed");
+			console.log("prevState : "+prevState);
+			console.log("State : "+state);
+
+			$(".ac").attr("disabled",!true);
+			$(".ce").attr("disabled",!true);
+			$(".op").attr("disabled",!false);
+			$(".num").attr("disabled",!true);
+			$(".zero").attr("disabled",!true);
+			$(".dec").attr("disabled",!false);
+			$(".equal").attr("disabled",!false);
+		}
+
+		function state_4(){
+			prevState = state;
+			state = 4;
+			console.log("=================");
+			console.log("state_4: CE: Pressed");
+			console.log("prevState : "+prevState);
+			console.log("State : "+state);
+
+			$(".ac").attr("disabled",!true);
+			$(".ce").attr("disabled",!true);
+			$(".dec").attr("disabled",!true);
+
+			if(!isNaN(arr[arr.length-1])){
+				$(".op").attr("disabled",!true);
+				$(".num").attr("disabled",!true);
+				$(".zero").attr("disabled",!false);
+				if(arr.length>=3){
+					$(".equal").attr("disabled",!true);
+				}else{
+					$(".equal").attr("disabled",!false);
+				}
+			}else{
+				$(".op").attr("disabled",!false);
+				$(".num").attr("disabled",!true);
+				$(".zero").attr("disabled",!true);
+				$(".equal").attr("disabled",!false);
+			}
+
+		}
+
+		function state_5(){
+			prevState = state;
+			state = 5;
+			console.log("=================");
+			console.log("state_5: OPERATOR: Pressed");
+			console.log("prevState : "+prevState);
+			console.log("State : "+state);
+
+			$(".ac").attr("disabled",!true);
+			$(".ce").attr("disabled",!true);
+			$(".op").attr("disabled",!false);
+			$(".num").attr("disabled",!true);
+			$(".zero").attr("disabled",!true);
+			$(".dec").attr("disabled",!true);
+			$(".equal").attr("disabled",!false);
+		}
+
+		function state_6(){
+			prevState = state;
+			state = 6;
+			console.log("=================");
+			console.log("state_6: EQUAL: Pressed");
+			console.log("prevState : "+prevState);
+			console.log("State : "+state);
+
+			$(".ac").attr("disabled",!true);
+			$(".ce").attr("disabled",!true);
+			$(".op").attr("disabled",!true);
+			$(".num").attr("disabled",!true);
+			$(".zero").attr("disabled",!true);
+			$(".dec").attr("disabled",!true);
+			$(".equal").attr("disabled",!false);
+		}
+
+		function state_7(){
+			prevState = state;
+			state = 7;
+			console.log("=================");
+			console.log("state_7: ZERO: Pressed");
+			console.log("prevState : "+prevState);
+			console.log("State : "+state);
+			
+			$(".ac").attr("disabled",!true);
+			$(".ce").attr("disabled",!true);
+			$(".op").attr("disabled",!false);
+			$(".num").attr("disabled",!true);
+			$(".zero").attr("disabled",!false);
+			$(".dec").attr("disabled",!true);
+			$(".equal").attr("disabled",!false);
+		}
+		
+		var calculate = function(a,b,ca){
+			return ca(a,b);
+		};
+
+		var add = function(a,b){
+			console.log( (((a*1)+(b*1))%1 ).toString().length);
+			if( ( ((a*1)+(b*1))%1 ).toString().length > 6 ){
+				return ((a*1)+(b*1)).toFixed(4);
+			}else{
+				return ((a*1)+(b*1));
+			}
+		};
+
+		var substract = function(a,b){
+			console.log( ((a-b)%1 ).toString().length);
+			if( ( (a-b)%1 ).toString().length > 6 ){
+				return (a-b).toFixed(4);
+			}else{
+				return (a-b);
+			}
+
+		};
+
+		var multiply = function(a,b){
+			console.log( ((a*b)%1 ).toString().length);
+			if( ( (a*b)%1 ).toString().length > 6 ){
+				return (a*b).toFixed(4);
+			}else{
+				return (a*b);
+			}
+		};
+
+		var division = function(a,b){
+			console.log( ((a/b)%1 ).toString().length);
+			if( ( (a/b)%1 ).toString().length > 6 ){
+				return (a/b).toFixed(4);
+			}else{
+				return (a/b);
+			}
+		};
+
+	});
+
+	</script>
+
+</head>
+<body>
+
+<div class = "text-center container">
+
+<div class="text-center calculator-border">
+<span class="brand ">CALCULATOR</span>
+<br/>
+<br/>
+	<div class="display-border">
+		<input type="text" class="display result" value="0" disabled="disabled" /><br/>
+		<input type="text" class="display operation" value="0" disabled="disabled" /><br/>
+	</div>
+	<input type="button" class="button ac" value="AC"/>
+	<input type="button" class="button ce" value="CE"/>
+	<input type="button" class="button op" value="/"/>
+	<input type="button" class="button op" value="*"/>
+	<br/>
+	<input type="button" class="button num" value="7"/>
+	<input type="button" class="button num" value="8"/>
+	<input type="button" class="button num" value="9"/>
+	<input type="button" class="button op" value="-"/>
+	<br/>
+	<input type="button" class="button num" value="4"/>
+	<input type="button" class="button num" value="5"/>
+	<input type="button" class="button num" value="6"/>
+	<input type="button" class="button op" value="+"/>
+	<br/>
+	<input type="button" class="button num" value="1"/>
+	<input type="button" class="button num" value="2"/>
+	<input type="button" class="button num" value="3"/>
+	<input type="button" class="button dec" value="."/>
+	<br/>
+	<input type="button" class="button zero" value="0"/>
+	<input type="button" class="button equal" value="="/>
+	<br/>
+</div>
+<div class="text-center" style="color:white">by : <a style="color:white;" href='https://codepen.io/risyana/'>Eka</a></div>	
+
+
+
+</div> <!--- END WRAPPER -->
+</body>
+</html>
